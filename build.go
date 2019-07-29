@@ -2,9 +2,21 @@ package mast
 
 import "net/rpc"
 
+// Builder could build for given parameters to make
+// rpc and grpc client.
 type Builder interface {
-	Build(target Target, cc ClientConn, opts BuildOption) (mast, error)
+	BuildClient(rpcname string) (interface{}, error)
+	BuildServer(rpcname string) (interface{}, error)
+	BuildResolver(rpcname string) (interface{}, error)
 }
+
+// chose one
+// server {
+// rpc.Server
+// }
+
+//chose two
+// rpc.Server{}
 
 // BuilderOptions means how to build rpc
 // provide some BuilderOptions.
