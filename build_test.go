@@ -33,6 +33,23 @@ func (t *Arith) Divide(args *Args, quo *Quotient) error {
 	quo.Rem = args.A % args.B
 	return nil
 }
+func TestBuilder(t *testing.T) {
+	bopts := defaultBuildOptions()
+
+	bopts.rcvrs["Arith"] = new(Arith)
+	bopts.RPCServer()
+
+	args := &Args{7, 8}
+	var reply int
+	err := bopts.RPCClient().Call("Arith.Multiply", args, &reply)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if args.B*args.A != reply {
+		t.Errorf("Arith: %d*%d=%d", args.A, args.B, reply)
+	}
+	t.Logf("Arith: %d*%d=%d", args.A, args.B, reply)
+}
 
 func listenTCP() (net.Listener, string) {
 	l, e := net.Listen("tcp", "127.0.0.1:1234")

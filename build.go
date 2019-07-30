@@ -14,6 +14,13 @@ const (
 	DefaultRPCPath = "/_goRPC_"
 	// DefaultDebugPath DebugPath
 	DefaultDebugPath = "/debug/rpc"
+
+	// TCP is defaultBuildOptions for communicate
+	TCP = 0
+	// HTTP should use path like DefaultDebugPath DefaultRPCPath
+	HTTP = 1
+	// JSON is change default codec for server and client
+	JSON = 2
 )
 
 // Builder could build for given parameters to make
@@ -21,7 +28,6 @@ const (
 type Builder interface {
 	BuildClient(rpcname string) (interface{}, error)
 	BuildServer(rpcname string) (interface{}, error)
-	BuildResolver(rpcname string) (interface{}, error)
 }
 
 // chose one ✅
@@ -42,9 +48,9 @@ type BuilderOptions struct {
 	network string
 	address string
 	// rpc BuilderOptions
-	rpcmode uint8                  // 0 use tcp,1 use http, 2 use json
-	rcvrs   map[string]interface{} //receiver of methods for service
-
+	rpcmode  uint8                  // 0 use tcp,1 use http, 2 use json
+	rcvrs    map[string]interface{} //receiver of methods for service
+	httppath string
 	// grpc-go BuilderOptions
 
 }
@@ -52,8 +58,9 @@ type BuilderOptions struct {
 func defaultBuildOptions() *BuilderOptions {
 	return &BuilderOptions{
 		network: "tcp",
-		address: "127.0.0.1:0",
+		address: "127.0.0.1:21001",
 		rpcmode: 0,
+		rcvrs:   make(map[string]interface{}),
 	}
 }
 
@@ -64,10 +71,6 @@ func (bopts *BuilderOptions) RPCServer() *rpc.Server {
 
 	//register methods
 	for rcvrName, rcvr := range bopts.rcvrs {
-		if rcvrName == "" {
-			s.Register(rcvr)
-			continue
-		}
 		s.RegisterName(rcvrName, rcvr)
 	}
 
@@ -80,11 +83,11 @@ func (bopts *BuilderOptions) RPCServer() *rpc.Server {
 	}()
 
 	switch bopts.rpcmode {
-	case 0:
-		log.Println("RPC server listening on", serverAddr)
+	case TCP:
+		log.Println("TCPRPC server listening on", serverAddr)
 		go s.Accept(ln)
 
-	case 1:
+	case HTTP:
 		if bopts.network != "tcp" && bopts.network != "tcp6" {
 			log.Fatal("cannot start http server by", bopts.network)
 		}
@@ -98,7 +101,7 @@ func (bopts *BuilderOptions) RPCServer() *rpc.Server {
 
 		log.Println("Test HTTP RPC server listening on", serverAddr)
 
-	case 2:
+	case JSON:
 		go func() {
 			for {
 				conn, err := ln.Accept()
@@ -115,6 +118,36 @@ func (bopts *BuilderOptions) RPCServer() *rpc.Server {
 	return s
 }
 
-func (bopts *BuilderOptions) rpcclient() *rpc.Client {
-	return &rpc.Client{}
+// RPCClient should call defer Client.Close() to exit graceful
+// When new a client ,could use it Call() and Go() method.
+// if nil ,means it's wrong to create a client.
+func (bopts *BuilderOptions) RPCClient() *rpc.Client {
+	switch bopts.rpcmode {
+	case TCP:
+		client, err := rpc.Dial(bopts.network, bopts.address)
+		if err != nil {
+			log.Fatal("Client Dial TCP error:", err.Error())
+		}
+		return client
+	case HTTP:
+		var client *rpc.Client
+		var err error
+		if bopts.httppath == "" {
+			client, err = rpc.DialHTTP("tcp", bopts.network+bopts.address)
+		} else {
+			client, err = rpc.DialHTTPPath("tcp", bopts.network+bopts.address, bopts.httppath)
+		}
+		if err != nil {
+			log.Fatal("dialing http use ", bopts.network, err.Error())
+		}
+		return client
+	case JSON:
+		client, err := jsonrpc.Dial(bopts.network, bopts.address)
+		if err != nil {
+			log.Fatal("dialing JSON use ", bopts.network, " error:", err.Error())
+		}
+		return client
+	}
+
+	panic("Create Client Fail")
 }
