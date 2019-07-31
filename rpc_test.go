@@ -34,7 +34,7 @@ func (t *Arith) Divide(args *Args, quo *Quotient) error {
 	return nil
 }
 func TestBuilder(t *testing.T) {
-	bopts := defaultBuildOptions()
+	bopts := defaultRPCBuildOptions()
 
 	bopts.rcvrs["Arith"] = new(Arith)
 	bopts.RPCServer()
