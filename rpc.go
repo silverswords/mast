@@ -45,7 +45,11 @@ func (bopts *BuilderOptions) RPCServer() *rpc.Server {
 		if bopts.network != "tcp" && bopts.network != "tcp6" {
 			log.Fatal("cannot start http server by", bopts.network)
 		}
-		s.HandleHTTP(DefaultRPCPath, DefaultDebugPath)
+		if bopts.httppath != "" {
+			s.HandleHTTP(bopts.httppath, "/debug"+bopts.httppath)
+		} else {
+			s.HandleHTTP(DefaultRPCPath, DefaultDebugPath)
+		}
 
 		ts := &httptest.Server{
 			Listener: ln,
@@ -87,12 +91,12 @@ func (bopts *BuilderOptions) RPCClient() *rpc.Client {
 		var client *rpc.Client
 		var err error
 		if bopts.httppath == "" {
-			client, err = rpc.DialHTTP("tcp", bopts.network+bopts.address)
+			client, err = rpc.DialHTTP("tcp", bopts.address)
 		} else {
-			client, err = rpc.DialHTTPPath("tcp", bopts.network+bopts.address, bopts.httppath)
+			client, err = rpc.DialHTTPPath("tcp", bopts.address, bopts.httppath)
 		}
 		if err != nil {
-			log.Fatal("dialing http use ", bopts.network, err.Error())
+			log.Fatal("dialing http use ", bopts.network, " [error] :"+err.Error())
 		}
 		return client
 	case JSON:
