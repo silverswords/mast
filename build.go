@@ -14,6 +14,11 @@ const (
 	HTTP = 1
 	// JSON is change default codec for server and client
 	JSON = 2
+
+	// DefaultNetwork 0 means TCP Client and Server
+	DefaultNetwork = TCP
+	// DefaultAddress means itself
+	DefaultAddress = "127.0.0.1:21001"
 )
 
 // Builder could build for given parameters to make
@@ -26,8 +31,8 @@ type Builder interface {
 // BuilderOptions means how to build rpc
 // provide some BuilderOptions.
 type BuilderOptions struct {
-	// network & address & port
-	network string
+	// address & port
+
 	address string
 	// rpc BuilderOptions
 	rpcmode  uint8                  // 0 use tcp,1 use http, 2 use json

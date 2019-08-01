@@ -6,8 +6,10 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"net/rpc"
+
 	"testing"
+
+	"github.com/silverswords/mast/rpc"
 )
 
 type Args struct {
@@ -54,6 +56,25 @@ func TestTCPBuilder(t *testing.T) {
 func TestHTTPBuilder(t *testing.T) {
 	bopts := defaultRPCBuildOptions()
 	bopts.rpcmode = 1
+
+	bopts.rcvrs["Arith"] = new(Arith)
+	bopts.RPCServer()
+
+	args := &Args{7, 8}
+	var reply int
+	err := bopts.RPCClient().Call("Arith.Multiply", args, &reply)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if args.B*args.A != reply {
+		t.Errorf("Arith: %d*%d=%d", args.A, args.B, reply)
+	}
+	t.Logf("Arith: %d*%d=%d", args.A, args.B, reply)
+}
+
+func TestJSONBuilder(t *testing.T) {
+	bopts := defaultRPCBuildOptions()
+	bopts.rpcmode = 2
 
 	bopts.rcvrs["Arith"] = new(Arith)
 	bopts.RPCServer()

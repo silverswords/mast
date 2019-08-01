@@ -5,33 +5,36 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"net/rpc"
-	"net/rpc/jsonrpc"
+
+	"github.com/silverswords/mast/rpc"
+	"github.com/silverswords/mast/rpc/jsonrpc"
 )
 
 func defaultRPCBuildOptions() *BuilderOptions {
 	return &BuilderOptions{
-		network: "tcp",
-		address: "127.0.0.1:21001",
-		rpcmode: 0,
+		address: DefaultAddress,
+		rpcmode: DefaultNetwork,
 		rcvrs:   make(map[string]interface{}),
 	}
 }
 
 // RPCServer new a rpc server to serve conn by
-// builder_options.network,address,rpcmode,rcvrs
+// builder_options.address,rpcmode,rcvrs
 func (bopts *BuilderOptions) RPCServer() *rpc.Server {
-	s := rpc.NewServer()
+	s := rpc.DefaultServer
 
 	//register methods
 	for rcvrName, rcvr := range bopts.rcvrs {
-		s.RegisterName(rcvrName, rcvr)
+		err := s.RegisterName(rcvrName, rcvr)
+		if err != nil {
+			log.Println("register ", rcvrName, " ", err.Error())
+		}
 	}
 
 	ln, serverAddr := func() (net.Listener, string) {
-		l, e := net.Listen(bopts.network, bopts.address)
+		l, e := net.Listen("tcp", bopts.address)
 		if e != nil {
-			log.Fatal("net.Listen ", bopts.network, bopts.address)
+			log.Fatal("net.Listen on tcp: ", bopts.address)
 		}
 		return l, l.Addr().String()
 	}()
@@ -42,9 +45,6 @@ func (bopts *BuilderOptions) RPCServer() *rpc.Server {
 		go s.Accept(ln)
 
 	case HTTP:
-		if bopts.network != "tcp" && bopts.network != "tcp6" {
-			log.Fatal("cannot start http server by", bopts.network)
-		}
 		if bopts.httppath != "" {
 			s.HandleHTTP(bopts.httppath, "/debug"+bopts.httppath)
 		} else {
@@ -69,7 +69,6 @@ func (bopts *BuilderOptions) RPCServer() *rpc.Server {
 				go jsonrpc.ServeConn(conn)
 			}
 		}()
-
 		log.Println("JSON server listening on", serverAddr)
 	}
 
@@ -82,11 +81,12 @@ func (bopts *BuilderOptions) RPCServer() *rpc.Server {
 func (bopts *BuilderOptions) RPCClient() *rpc.Client {
 	switch bopts.rpcmode {
 	case TCP:
-		client, err := rpc.Dial(bopts.network, bopts.address)
+		client, err := rpc.Dial("tcp", bopts.address)
 		if err != nil {
 			log.Fatal("Client Dial TCP error:", err.Error())
 		}
 		return client
+
 	case HTTP:
 		var client *rpc.Client
 		var err error
@@ -96,14 +96,16 @@ func (bopts *BuilderOptions) RPCClient() *rpc.Client {
 			client, err = rpc.DialHTTPPath("tcp", bopts.address, bopts.httppath)
 		}
 		if err != nil {
-			log.Fatal("dialing http use ", bopts.network, " [error] :"+err.Error())
+			log.Fatal("[error] :" + err.Error())
 		}
 		return client
+
 	case JSON:
-		client, err := jsonrpc.Dial(bopts.network, bopts.address)
+		client, err := jsonrpc.Dial("tcp", bopts.address)
 		if err != nil {
-			log.Fatal("dialing JSON use ", bopts.network, " error:", err.Error())
+			log.Fatal("[error]: ", err.Error())
 		}
+
 		return client
 	}
 
