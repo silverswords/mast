@@ -21,7 +21,7 @@ func defaultRPCBuildOptions() *BuilderOptions {
 // RPCServer new a rpc server to serve conn by
 // builder_options.address,rpcmode,rcvrs
 func (bopts *BuilderOptions) RPCServer() *rpc.Server {
-	s := rpc.DefaultServer
+	s := rpc.NewServer()
 
 	//register methods
 	for rcvrName, rcvr := range bopts.rcvrs {
@@ -66,7 +66,7 @@ func (bopts *BuilderOptions) RPCServer() *rpc.Server {
 				if err != nil {
 					log.Fatal("rpc.Serve: accept:", err.Error())
 				}
-				go jsonrpc.ServeConn(conn)
+				go s.ServeCodec(jsonrpc.NewServerCodec(conn))
 			}
 		}()
 		log.Println("JSON server listening on", serverAddr)
