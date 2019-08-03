@@ -1,6 +1,9 @@
 package mast
 
-import "log"
+import (
+	"log"
+	"time"
+)
 
 const (
 	// DefaultRPCPath used by HandleHTTP
@@ -32,19 +35,33 @@ type Builder interface {
 // provide some BuilderOptions.
 type BuilderOptions struct {
 	// address & port
-
 	address string
-	// rpc BuilderOptions
+
+	// gorpc BuilderOptions
 	rpcmode  uint8                  // 0 use tcp,1 use http, 2 use json
 	rcvrs    map[string]interface{} //receiver of methods for service
 	httppath string
-	// grpc-go BuilderOptions
 
+	// grpc-go BuilderOptions
+	token string
+
+	// grpc.CallOption
+	compress string // grpc.UseCompressor(gzip.Name)
+
+	// grpc.DialOption
+	timeout time.Duration // timeout * time.Second
+
+	creds string // path of cert, if "" will use grpc.WithInsecure()
+	// serverHostOverride could be a parameter on NewTLS
+
+	// grpc.ServerOption
+	privitekey string
+	cert       string
 }
 
 // Mast is instance of BuilderOptions to build client and server
 type Mast struct {
-	BuilderOptions
+	*BuilderOptions
 }
 
 // BuildClient realize interface to gen Client
@@ -52,7 +69,8 @@ func (m *Mast) BuildClient(rpcname string) interface{} {
 	switch rpcname {
 	case "RPC":
 		return m.BuilderOptions.RPCClient()
-	case "gRPC":
+	case "GRPC":
+		return m.BuilderOptions.GRPCClient()
 	}
 
 	log.Fatal("Unknown Error on Creating Client")
@@ -64,9 +82,10 @@ func (m *Mast) BuildServer(rpcname string) interface{} {
 	switch rpcname {
 	case "RPC":
 		return m.BuilderOptions.RPCServer()
-	case "gRPC":
+	case "GRPC":
+		return m.BuilderOptions.GRPCServer()
 	}
 
-	log.Fatal("Unknown Error on Creating Client")
+	log.Fatal("Unknown Error on Creating Server")
 	return nil
 }
