@@ -8,7 +8,7 @@ import (
 	"github.com/silverswords/mast/rpc"
 )
 
-type Args struct {
+type Args struct { 
 	A, B int
 }
 

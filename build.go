@@ -2,7 +2,6 @@ package mast
 
 import (
 	"log"
-	"time"
 )
 
 const (
@@ -43,20 +42,22 @@ type BuilderOptions struct {
 	httppath string
 
 	// grpc-go BuilderOptions
+
+	// grpc.CallOption could use by DialOption
+	// grpc.DialOption
+	// timeout        time.Duration // timeout * time.Second
+
+	// compress string // grpc.UseCompressor(gzip.Name)
+
+	compressorName string // like gzip.Name
+	// token should is for client,should handle on server
 	token string
 
-	// grpc.CallOption
-	compress string // grpc.UseCompressor(gzip.Name)
-
-	// grpc.DialOption
-	timeout time.Duration // timeout * time.Second
-
-	creds string // path of cert, if "" will use grpc.WithInsecure()
-	// serverHostOverride could be a parameter on NewTLS
-
-	// grpc.ServerOption
-	privitekey string
-	cert       string
+	//only for use same serverCert
+	// todo: auto apply TLS
+	serverHostOverride string
+	serverCert         string
+	serverKey          string
 }
 
 // Mast is instance of BuilderOptions to build client and server
