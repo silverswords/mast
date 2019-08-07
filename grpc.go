@@ -3,6 +3,7 @@ package mast
 import (
 	"log"
 
+	middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -30,6 +31,14 @@ func (bopts *BuilderOptions) GRPCServer() *grpc.Server {
 		}
 
 		opts = append(opts, grpc.Creds(creds))
+	}
+
+	if len(bopts.unaryServerInterceptors) != 0 {
+		opts = append(opts, middleware.WithUnaryServerChain(bopts.unaryServerInterceptors...))
+	}
+
+	if len(bopts.streamServerInterceptors) != 0 {
+		opts = append(opts, middleware.WithStreamServerChain(bopts.streamServerInterceptors...))
 	}
 
 	return grpc.NewServer(opts...)
@@ -61,6 +70,14 @@ func (bopts *BuilderOptions) GRPCClient() *grpc.ClientConn {
 
 	if bopts.compressorName != "" {
 		opts = append(opts, grpc.WithDefaultCallOptions(grpc.UseCompressor(bopts.compressorName)))
+	}
+
+	if len(bopts.unaryServerInterceptors) != 0 {
+		opts = append(opts, grpc.WithUnaryInterceptor(bopts.unaryClientInterceptors))
+	}
+
+	if len(bopts.streamServerInterceptors) != 0 {
+		opts = append(opts, grpc.WithStreamInterceptor(bopts.streamClientInterceptors))
 	}
 
 	client, err := grpc.Dial(bopts.address, opts...)

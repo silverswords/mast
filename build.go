@@ -2,6 +2,8 @@ package mast
 
 import (
 	"log"
+
+	"google.golang.org/grpc"
 )
 
 const (
@@ -58,6 +60,11 @@ type BuilderOptions struct {
 	serverHostOverride string
 	serverCert         string
 	serverKey          string
+
+	unaryServerInterceptors  []grpc.UnaryServerInterceptor
+	streamServerInterceptors []grpc.StreamServerInterceptor
+	unaryClientInterceptors  []grpc.UnaryClientInterceptor
+	streamClientInterceptors []grpc.StreamClientInterceptor
 }
 
 // Mast is instance of BuilderOptions to build client and server
