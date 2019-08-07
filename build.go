@@ -63,8 +63,8 @@ type BuilderOptions struct {
 
 	unaryServerInterceptors  []grpc.UnaryServerInterceptor
 	streamServerInterceptors []grpc.StreamServerInterceptor
-	unaryClientInterceptors  []grpc.UnaryClientInterceptor
-	streamClientInterceptors []grpc.StreamClientInterceptor
+	unaryClientInterceptors  grpc.UnaryClientInterceptor
+	streamClientInterceptors grpc.StreamClientInterceptor
 }
 
 // Mast is instance of BuilderOptions to build client and server
