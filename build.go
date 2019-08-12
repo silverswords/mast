@@ -1,8 +1,7 @@
 package mast
 
 import (
-	"log"
-
+	"github.com/silverswords/mast/rpc"
 	"google.golang.org/grpc"
 )
 
@@ -72,28 +71,24 @@ type Mast struct {
 	*BuilderOptions
 }
 
-// BuildClient realize interface to gen Client
-func (m *Mast) BuildClient(rpcname string) interface{} {
-	switch rpcname {
-	case "RPC":
-		return m.BuilderOptions.RPCClient()
-	case "GRPC":
-		return m.BuilderOptions.GRPCClient()
-	}
-
-	log.Fatal("Unknown Error on Creating Client")
-	return nil
+// BuildRPCClient return *rpc.Client
+func (m *Mast) BuildRPCClient() *rpc.Client {
+	return m.BuilderOptions.RPCClient()
 }
 
-// BuildServer realize interface to gen Server
-func (m *Mast) BuildServer(rpcname string) interface{} {
-	switch rpcname {
-	case "RPC":
-		return m.BuilderOptions.RPCServer()
-	case "GRPC":
-		return m.BuilderOptions.GRPCServer()
-	}
+// BuildGRPCClient return *grpc.ClientConn and
+// is supposed to Call register from PB file
+func (m *Mast) BuildGRPCClient() *grpc.ClientConn {
+	return m.BuilderOptions.GRPCClient()
+}
 
-	log.Fatal("Unknown Error on Creating Server")
-	return nil
+// BuildRPCServer return *rpc.Server
+func (m *Mast) BuildRPCServer() *rpc.Server {
+	return m.BuilderOptions.RPCServer()
+}
+
+// BuildGRPCServer return *grpc.Server and
+// is supposed to registe service to serve
+func (m *Mast) BuildGRPCServer() *grpc.Server {
+	return m.BuilderOptions.GRPCServer()
 }

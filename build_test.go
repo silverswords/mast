@@ -4,11 +4,9 @@ import (
 	"errors"
 	"log"
 	"testing"
-
-	"github.com/silverswords/mast/rpc"
 )
 
-type Args struct { 
+type Args struct {
 	A, B int
 }
 
@@ -38,11 +36,11 @@ func TestBuild(t *testing.T) {
 func testrpc(t *testing.T) {
 	mast := &Mast{BuilderOptions: defaultRPCBuildOptions()}
 	mast.BuilderOptions.rcvrs["Arith"] = new(Arith)
-	mast.BuildServer("RPC")
+	mast.BuildRPCServer()
 
 	args := &Args{7, 8}
 	var reply int
-	err := mast.BuildClient("RPC").(*rpc.Client).Call("Arith.Multiply", args, &reply)
+	err := mast.BuildRPCClient().Call("Arith.Multiply", args, &reply)
 	if err != nil {
 		log.Fatal(err)
 	}
