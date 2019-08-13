@@ -1,27 +1,26 @@
-package mast
+package rpc
 
 import (
+	"github.com/silverswords/mast"
 	"log"
 	"net"
 	"net/http"
 	"net/http/httptest"
-
-	"github.com/silverswords/mast/rpc"
-	"github.com/silverswords/mast/rpc/jsonrpc"
+	"net/rpc/jsonrpc"
 )
 
-func defaultRPCBuildOptions() *BuilderOptions {
-	return &BuilderOptions{
-		address: DefaultAddress,
-		rpcmode: DefaultNetwork,
+func defaultRPCBuildOptions() *mast.BuilderOptions {
+	return &mast.BuilderOptions{
+		address: mast.DefaultAddress,
+		rpcmode: mast.DefaultNetwork,
 		rcvrs:   make(map[string]interface{}),
 	}
 }
 
 // RPCServer new a rpc server to serve conn by
 // builder_options.address,rpcmode,rcvrs
-func (bopts *BuilderOptions) RPCServer() *rpc.Server {
-	s := rpc.NewServer()
+func (bopts *mast.BuilderOptions) RPCServer() *Server {
+	s := NewServer()
 
 	//register methods
 	for rcvrName, rcvr := range bopts.rcvrs {
@@ -40,15 +39,15 @@ func (bopts *BuilderOptions) RPCServer() *rpc.Server {
 	}()
 
 	switch bopts.rpcmode {
-	case TCP:
+	case mast.TCP:
 		log.Println("TCPRPC server listening on", serverAddr)
 		go s.Accept(ln)
 
-	case HTTP:
+	case mast.HTTP:
 		if bopts.httppath != "" {
 			s.HandleHTTP(bopts.httppath, "/debug"+bopts.httppath)
 		} else {
-			s.HandleHTTP(DefaultRPCPath, DefaultDebugPath)
+			s.HandleHTTP(mast.DefaultRPCPath, mast.DefaultDebugPath)
 		}
 
 		ts := &httptest.Server{
@@ -59,7 +58,7 @@ func (bopts *BuilderOptions) RPCServer() *rpc.Server {
 
 		log.Println("Test HTTP RPC server listening on", serverAddr)
 
-	case JSON:
+	case mast.JSON:
 		go func() {
 			for {
 				conn, err := ln.Accept()
@@ -78,29 +77,29 @@ func (bopts *BuilderOptions) RPCServer() *rpc.Server {
 // RPCClient should call defer Client.Close() to exit graceful
 // When new a client ,could use it Call() and Go() method.
 // if nil ,means it's wrong to create a client.
-func (bopts *BuilderOptions) RPCClient() *rpc.Client {
+func (bopts *mast.BuilderOptions) RPCClient() *Client {
 	switch bopts.rpcmode {
-	case TCP:
-		client, err := rpc.Dial("tcp", bopts.address)
+	case mast.TCP:
+		client, err := Dial("tcp", bopts.address)
 		if err != nil {
 			log.Fatal("Client Dial TCP error:", err.Error())
 		}
 		return client
 
-	case HTTP:
-		var client *rpc.Client
+	case mast.HTTP:
+		var client *Client
 		var err error
 		if bopts.httppath == "" {
-			client, err = rpc.DialHTTP("tcp", bopts.address)
+			client, err = DialHTTP("tcp", bopts.address)
 		} else {
-			client, err = rpc.DialHTTPPath("tcp", bopts.address, bopts.httppath)
+			client, err = DialHTTPPath("tcp", bopts.address, bopts.httppath)
 		}
 		if err != nil {
 			log.Fatal("[error] :" + err.Error())
 		}
 		return client
 
-	case JSON:
+	case mast.JSON:
 		client, err := jsonrpc.Dial("tcp", bopts.address)
 		if err != nil {
 			log.Fatal("[error]: ", err.Error())

@@ -1,6 +1,7 @@
-package mast
+package grpc
 
 import (
+	"github.com/silverswords/mast"
 	"log"
 
 	middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -10,9 +11,9 @@ import (
 	"google.golang.org/grpc/credentials/oauth"
 )
 
-func defaultGRPCBuildOptions() *BuilderOptions {
-	return &BuilderOptions{
-		address: DefaultAddress,
+func defaultGRPCBuildOptions() *mast.BuilderOptions {
+	return &mast.BuilderOptions{
+		address: mast.DefaultAddress,
 	}
 }
 
@@ -21,7 +22,7 @@ func defaultGRPCBuildOptions() *BuilderOptions {
 
 // GRPCServer return a Server make by grpc.ServerOption，
 // then you need use pb.Register[ServiceName]Server(yourServerName,yourRealizeServer)
-func (bopts *BuilderOptions) GRPCServer() *grpc.Server {
+func (bopts *mast.BuilderOptions) GRPCServer() *grpc.Server {
 	var opts []grpc.ServerOption
 
 	if bopts.serverCert != "" && bopts.serverKey != "" {
@@ -50,7 +51,7 @@ func (bopts *BuilderOptions) GRPCServer() *grpc.Server {
 // then you need use pb.New[ServiceName]Client(yourClientConn)
 // to Create client which could Call Service and use context
 // Should： ClientConn should be closed by Close()
-func (bopts *BuilderOptions) GRPCClient() *grpc.ClientConn {
+func (bopts *mast.BuilderOptions) GRPCClient() *grpc.ClientConn {
 	var opts []grpc.DialOption
 
 	switch {

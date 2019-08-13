@@ -1,23 +1,22 @@
-package mast
+package rpc
 
 import (
 	"fmt"
+	"github.com/silverswords/mast"
 	"log"
 	"net"
 	"net/http"
 
 	"testing"
-
-	"github.com/silverswords/mast/rpc"
 )
 
 func TestTCPBuilder(t *testing.T) {
 	bopts := defaultRPCBuildOptions()
 
-	bopts.rcvrs["Arith"] = new(Arith)
+	bopts.rcvrs["Arith"] = new(mast.Arith)
 	bopts.RPCServer()
 
-	args := &Args{7, 8}
+	args := &mast.Args{7, 8}
 	var reply int
 	err := bopts.RPCClient().Call("Arith.Multiply", args, &reply)
 	if err != nil {
@@ -33,10 +32,10 @@ func TestHTTPBuilder(t *testing.T) {
 	bopts := defaultRPCBuildOptions()
 	bopts.rpcmode = 1
 
-	bopts.rcvrs["Arith"] = new(Arith)
+	bopts.rcvrs["Arith"] = new(mast.Arith)
 	bopts.RPCServer()
 
-	args := &Args{7, 8}
+	args := &mast.Args{7, 8}
 	var reply int
 	err := bopts.RPCClient().Call("Arith.Multiply", args, &reply)
 	if err != nil {
@@ -52,10 +51,10 @@ func TestJSONBuilder(t *testing.T) {
 	bopts := defaultRPCBuildOptions()
 	bopts.rpcmode = 2
 
-	bopts.rcvrs["Arith"] = new(Arith)
+	bopts.rcvrs["Arith"] = new(mast.Arith)
 	bopts.RPCServer()
 
-	args := &Args{7, 8}
+	args := &mast.Args{7, 8}
 	var reply int
 	err := bopts.RPCClient().Call("Arith.Multiply", args, &reply)
 	if err != nil {
@@ -76,20 +75,20 @@ func listenTCP() (net.Listener, string) {
 }
 
 func startTCPServer() {
-	rpc.Register(new(Arith))
-	rpc.RegisterName("net.rpc.Arith", new(Arith))
+	Register(new(mast.Arith))
+	RegisterName("net.rpc.Arith", new(mast.Arith))
 
 	var l net.Listener
 	l, serverAddr := listenTCP()
 
 	log.Println("listening on ", serverAddr)
-	go rpc.Accept(l)
+	go Accept(l)
 }
 
 func startHTTPServer() {
-	arith := new(Arith)
-	rpc.Register(arith)
-	rpc.HandleHTTP()
+	arith := new(mast.Arith)
+	Register(arith)
+	HandleHTTP()
 	l, e := net.Listen("tcp", ":1234")
 	if e != nil {
 		log.Fatal("listen error:", e)
@@ -98,13 +97,13 @@ func startHTTPServer() {
 }
 
 func HTTPclient() {
-	client, err := rpc.DialHTTP("tcp", "127.0.0.1:1234")
+	client, err := DialHTTP("tcp", "127.0.0.1:1234")
 	if err != nil {
 		log.Fatal("dialing:", err)
 	}
 
 	// Synchronous call
-	args := &Args{7, 8}
+	args := &mast.Args{7, 8}
 	var reply int
 	err = client.Call("Arith.Multiply", args, &reply)
 	if err != nil {
@@ -113,7 +112,7 @@ func HTTPclient() {
 	fmt.Printf("Arith: %d*%d=%d", args.A, args.B, reply)
 
 	// Asynchronous call
-	quotient := new(Quotient)
+	quotient := new(mast.Quotient)
 	divCall := client.Go("Arith.Divide", args, quotient, nil)
 	replyCall := <-divCall.Done // will be equal to divCall
 	// check errors, print, etc.
@@ -121,23 +120,23 @@ func HTTPclient() {
 }
 
 func TestTCP(t *testing.T) {
-	rpc.Register(new(Arith))
-	rpc.RegisterName("net.rpc.Arith", new(Arith))
+	Register(new(mast.Arith))
+	RegisterName("net.rpc.Arith", new(mast.Arith))
 
 	var l net.Listener
 	l, serverAddr := listenTCP()
 
 	t.Log("listening on ", serverAddr)
-	go rpc.Accept(l)
+	go Accept(l)
 
-	client, err := rpc.Dial("tcp", "127.0.0.1:1234")
+	client, err := Dial("tcp", "127.0.0.1:1234")
 	if err != nil {
 		t.Error("dialing", err)
 	}
 	defer client.Close()
 
 	// Synchronous call
-	args := &Args{7, 8}
+	args := &mast.Args{7, 8}
 	var reply int
 	err = client.Call("Arith.Multiply", args, &reply)
 	if err != nil {
@@ -147,7 +146,7 @@ func TestTCP(t *testing.T) {
 		t.Errorf("Arith: %d*%d=%d", args.A, args.B, reply)
 	}
 	// Asynchronous call
-	quotient := new(Quotient)
+	quotient := new(mast.Quotient)
 	divCall := client.Go("Arith.Divide", args, quotient, nil)
 	replyCall := <-divCall.Done // will be equal to divCall
 	// check errors, print, etc.

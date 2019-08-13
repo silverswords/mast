@@ -2,6 +2,7 @@ package mast
 
 import (
 	"errors"
+	"github.com/silverswords/mast/rpc"
 	"log"
 	"testing"
 )
@@ -34,7 +35,7 @@ func TestBuild(t *testing.T) {
 }
 
 func testrpc(t *testing.T) {
-	mast := &Mast{BuilderOptions: defaultRPCBuildOptions()}
+	mast := &Mast{BuilderOptions: rpc.defaultRPCBuildOptions()}
 	mast.BuilderOptions.rcvrs["Arith"] = new(Arith)
 	mast.BuildRPCServer()
 
