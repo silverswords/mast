@@ -6,29 +6,37 @@ type Builder interface {
 	Client() interface{}
 	Server() interface{}
 }
-type Mast struct{
+
+// Mast is Builder
+// could use namespace like grpc.client.gzip
+type Mast struct {
 	// all option
-	BuildOptions
-	grpc.ServerOption
-	map[string]func (*grpc.ServerOption)()
+	BuilderOptions
 }
 
-type Server interface{
+// Server could listen and serve
+type Server interface {
 	Listen()
 	Serve()
 }
-type Client interface{
+
+// Client supposed Synchronous and Asynchronous
+type Client interface {
 	Call()
 	Go()
 }
-func (m *Mast) Client() Client{
+
+// Client return Client
+func (m *Mast) Client() Client {
 	return nil
 }
 
-func (m *Mast) Server() Server{
+// Server return server
+func (m *Mast) Server() Server {
 	return nil
 }
 
-func (m *Mast) Config(opt string){
+// Config configure options in rpc
+func (m *Mast) Config(opt string) {
 
 }
