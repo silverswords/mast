@@ -1,7 +1,6 @@
 package grpc
 
 import (
-	"github.com/silverswords/mast"
 	"log"
 
 	middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -11,18 +10,36 @@ import (
 	"google.golang.org/grpc/credentials/oauth"
 )
 
-func defaultGRPCBuildOptions() *mast.BuilderOptions {
-	return &mast.BuilderOptions{
-		address: mast.DefaultAddress,
+type grpcBuilder struct {
+	address string
+	// grpc-go grpcBuilder
+
+	compressorName string // like gzip.Name
+	// token should is for client,should handle on server
+	token string
+
+	// only for use same serverCert
+	// todo: auto apply TLS
+	// should use path to cert
+	serverHostOverride string
+	serverCert         string
+	serverKey          string
+
+	unaryServerInterceptors  []grpc.UnaryServerInterceptor
+	streamServerInterceptors []grpc.StreamServerInterceptor
+	unaryClientInterceptors  grpc.UnaryClientInterceptor
+	streamClientInterceptors grpc.StreamClientInterceptor
+}
+
+// DefaultGRPCBuildOptions return grpcBuilder
+// which realized Builder interface
+func DefaultGRPCBuildOptions() *grpcBuilder {
+	return &grpcBuilder{
+		address: "127.0.0.1",
 	}
 }
 
-// chose 🥁
-// user register themself and call server's serve by s.Serve
-
-// GRPCServer return a Server make by grpc.ServerOption，
-// then you need use pb.Register[ServiceName]Server(yourServerName,yourRealizeServer)
-func (bopts *mast.BuilderOptions) GRPCServer() *grpc.Server {
+func (bopts *grpcBuilder) BuildServer() *grpc.Server {
 	var opts []grpc.ServerOption
 
 	if bopts.serverCert != "" && bopts.serverKey != "" {
@@ -51,7 +68,7 @@ func (bopts *mast.BuilderOptions) GRPCServer() *grpc.Server {
 // then you need use pb.New[ServiceName]Client(yourClientConn)
 // to Create client which could Call Service and use context
 // Should： ClientConn should be closed by Close()
-func (bopts *mast.BuilderOptions) GRPCClient() *grpc.ClientConn {
+func (bopts *grpcBuilder) BuildClient() *grpc.ClientConn {
 	var opts []grpc.DialOption
 
 	switch {

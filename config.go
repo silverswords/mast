@@ -1,9 +1,5 @@
 package mast
 
-import (
-	"google.golang.org/grpc"
-)
-
 const (
 	// DefaultRPCPath used by HandleHTTP
 	DefaultRPCPath = "/_goRPC_"
@@ -33,27 +29,4 @@ type BuilderOptions struct {
 	rpcmode  uint8                  // 0 use tcp,1 use http, 2 use json
 	rcvrs    map[string]interface{} //receiver of methods for service
 	httppath string
-
-	// grpc-go BuilderOptions
-
-	// grpc.CallOption could use by DialOption
-	// grpc.DialOption
-	// timeout        time.Duration // timeout * time.Second
-
-	// compress string // grpc.UseCompressor(gzip.Name)
-
-	compressorName string // like gzip.Name
-	// token should is for client,should handle on server
-	token string
-
-	//only for use same serverCert
-	// todo: auto apply TLS
-	serverHostOverride string
-	serverCert         string
-	serverKey          string
-
-	unaryServerInterceptors  []grpc.UnaryServerInterceptor
-	streamServerInterceptors []grpc.StreamServerInterceptor
-	unaryClientInterceptors  grpc.UnaryClientInterceptor
-	streamClientInterceptors grpc.StreamClientInterceptor
 }
