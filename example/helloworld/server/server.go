@@ -42,7 +42,7 @@ func main() {
 
 	s := b.Server()
 
-	pb.RegisterGreeterServer(s.Server, &server{})
+	s.Prepare(&server{},pb.RegisterGreeterServer)
 
 	if err := s.Serve(); err != nil {
 		log.Fatalf("failed to serve: %v", err)

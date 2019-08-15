@@ -9,23 +9,26 @@ type Builder interface {
 	Server() Server
 }
 
-type Builders struct {
-	*mastgrpc.GrpcBuilder
-}
-
 // Options configure Builder's options
-type Options func(string) error
+type Options func(*Builder) error
 
 // Server could listen and serve
 type Server interface {
 	Prepare(info, registerFunc interface{})
 	Start()
+	Stop() error
 }
 
 // Client supposed Synchronous and Asynchronous
 type Client interface {
 	Call()
-	Go()
+	Close() error
+	ReloadConfigs(Options)
+	GetOptions() Options
+}
+
+type Builders struct {
+	*mastgrpc.GrpcBuilder
 }
 
 // BuildClient return Client

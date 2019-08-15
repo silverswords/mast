@@ -3,6 +3,7 @@ package mastgrpc
 import (
 	"log"
 	"net"
+	"reflect"
 
 	middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"golang.org/x/oauth2"
@@ -10,6 +11,29 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/oauth"
 )
+
+// type serverOptions struct {
+// 	creds                 credentials.TransportCredentials
+// 	codec                 baseCodec
+// 	cp                    Compressor
+// 	dc                    Decompressor
+// 	unaryInt              UnaryServerInterceptor
+// 	streamInt             StreamServerInterceptor
+// 	inTapHandle           tap.ServerInHandle
+// 	statsHandler          stats.Handler
+// 	maxConcurrentStreams  uint32
+// 	maxReceiveMessageSize int
+// 	maxSendMessageSize    int
+// 	unknownStreamDesc     *StreamDesc
+// 	keepaliveParams       keepalive.ServerParameters
+// 	keepalivePolicy       keepalive.EnforcementPolicy
+// 	initialWindowSize     int32
+// 	initialConnWindowSize int32
+// 	writeBufferSize       int
+// 	readBufferSize        int
+// 	connectionTimeout     time.Duration
+// 	maxHeaderListSize     *uint32
+// }
 
 type GrpcBuilder struct {
 	address string
@@ -49,6 +73,18 @@ type Client struct {
 	*grpc.ClientConn
 }
 
+func (s *Server) Prepare(service, registerFunc interface{}) {
+	f := reflect.ValueOf(registerFunc)
+	if 2 != f.Type().NumIn() {
+		log.Fatal("The number of params is not adapted.")
+	}
+
+	p := make([]reflect.Value, 2)
+	p[0] = reflect.ValueOf(s.Server)
+	p[1] = reflect.ValueOf(service)
+	f.Call(p)
+}
+
 func (s *Server) Serve() error {
 	lis, err := net.Listen("tcp", s.GrpcBuilder.address)
 	if err != nil {
@@ -57,6 +93,7 @@ func (s *Server) Serve() error {
 	return s.Server.Serve(lis)
 }
 
+func (s *Server) Stop() error{return nil}
 func (c *Client) Call() {
 
 }
