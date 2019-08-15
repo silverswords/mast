@@ -1,7 +1,8 @@
-package grpc
+package mastgrpc
 
 import (
 	"log"
+	"net"
 
 	middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"golang.org/x/oauth2"
@@ -10,7 +11,7 @@ import (
 	"google.golang.org/grpc/credentials/oauth"
 )
 
-type grpcBuilder struct {
+type GrpcBuilder struct {
 	address string
 	// grpc-go grpcBuilder
 
@@ -33,13 +34,37 @@ type grpcBuilder struct {
 
 // DefaultGRPCBuildOptions return grpcBuilder
 // which realized Builder interface
-func DefaultGRPCBuildOptions() *grpcBuilder {
-	return &grpcBuilder{
-		address: "127.0.0.1",
+func DefaultGRPCBuildOptions() *GrpcBuilder {
+	return &GrpcBuilder{
+		address: "127.0.0.1:20001",
 	}
 }
 
-func (bopts *grpcBuilder) BuildServer() *grpc.Server {
+type Server struct {
+	*grpc.Server
+	*GrpcBuilder
+}
+
+type Client struct {
+	*grpc.ClientConn
+}
+
+func (s *Server) Serve() error {
+	lis, err := net.Listen("tcp", s.GrpcBuilder.address)
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	return s.Server.Serve(lis)
+}
+
+func (c *Client) Call() {
+
+}
+
+func (c *Client) Go() {
+
+}
+func (bopts *GrpcBuilder) Server() *Server {
 	var opts []grpc.ServerOption
 
 	if bopts.serverCert != "" && bopts.serverKey != "" {
@@ -59,16 +84,19 @@ func (bopts *grpcBuilder) BuildServer() *grpc.Server {
 		opts = append(opts, middleware.WithStreamServerChain(bopts.streamServerInterceptors...))
 	}
 
-	return grpc.NewServer(opts...)
+	return &Server{
+		grpc.NewServer(opts...),
+		bopts,
+	}
 
 	// panic("Create GRPCServer Fail")
 }
 
-// GRPCClient return a ClientConn by DialOption
+// Client return a ClientConn by DialOption
 // then you need use pb.New[ServiceName]Client(yourClientConn)
 // to Create client which could Call Service and use context
 // Should： ClientConn should be closed by Close()
-func (bopts *grpcBuilder) BuildClient() *grpc.ClientConn {
+func (bopts *GrpcBuilder) Client() *Client {
 	var opts []grpc.DialOption
 
 	switch {
@@ -103,6 +131,8 @@ func (bopts *grpcBuilder) BuildClient() *grpc.ClientConn {
 		log.Fatal("cannot connect ", bopts.address)
 	}
 
-	return client
+	return &Client{
+		client,
+	}
 	// panic("Create GRPCClient Fail")
 }

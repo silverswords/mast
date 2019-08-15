@@ -1,12 +1,13 @@
 package rpc
 
 import (
-	"github.com/silverswords/mast"
 	"log"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/rpc/jsonrpc"
+
+	"github.com/silverswords/mast"
 )
 
 func defaultRPCBuildOptions() *mast.BuilderOptions {

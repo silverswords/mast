@@ -1,11 +1,16 @@
 package mast
 
+import "github.com/silverswords/mast/mastgrpc"
+
 // Builder could build for given parameters to make
 // rpc and grpc client and server
 type Builder interface {
 	Client() Client
 	Server() Server
-	Setup(opt Options)
+}
+
+type Builders struct {
+	*mastgrpc.GrpcBuilder
 }
 
 // Options configure Builder's options
@@ -13,8 +18,8 @@ type Options func(string) error
 
 // Server could listen and serve
 type Server interface {
-	Listen()
-	Serve()
+	Prepare(info, registerFunc interface{})
+	Start()
 }
 
 // Client supposed Synchronous and Asynchronous
