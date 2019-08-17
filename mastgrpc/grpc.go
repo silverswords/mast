@@ -1,15 +1,15 @@
 package mastgrpc
 
 import (
+	"context"
 	"log"
 	"net"
 	"reflect"
 
 	middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/credentials/oauth"
+	"google.golang.org/grpc/grpclog"
 )
 
 // type serverOptions struct {
@@ -35,48 +35,47 @@ import (
 // 	maxHeaderListSize     *uint32
 // }
 
-type GrpcBuilder struct {
-	address string
-	// grpc-go grpcBuilder
+type GRPCBuilder struct {
+	target string
 
-	compressorName string // like gzip.Name
-	// token should is for client,should handle on server
-	token string
+	// temporary use bool now
+	secureConfig bool
 
-	// only for use same serverCert
-	// todo: auto apply TLS
-	// should use path to cert
-	serverHostOverride string
-	serverCert         string
-	serverKey          string
+	sopts []grpc.ServerOption
+	dopts []grpc.DialOption
 
 	unaryServerInterceptors  []grpc.UnaryServerInterceptor
 	streamServerInterceptors []grpc.StreamServerInterceptor
-	unaryClientInterceptors  grpc.UnaryClientInterceptor
-	streamClientInterceptors grpc.StreamClientInterceptor
+
+	unaryClientInterceptors  []grpc.UnaryClientInterceptor
+	streamClientInterceptors []grpc.StreamClientInterceptor
 }
 
-// DefaultGRPCBuildOptions return grpcBuilder
+// DefaultGRPCBuildOptions return GRPCBuilder
 // which realized Builder interface
-func DefaultGRPCBuildOptions() *GrpcBuilder {
-	return &GrpcBuilder{
-		address: "127.0.0.1:20001",
+func DefaultGRPCBuildOptions() *GRPCBuilder {
+	return &GRPCBuilder{
+		target: DefaultTarget,
 	}
+}
+
+func SetTarget(b *GRPCBuilder, target string) {
+	b.target = target
 }
 
 type Server struct {
 	*grpc.Server
-	*GrpcBuilder
+	lis net.Listener
 }
 
-type Client struct {
-	*grpc.ClientConn
-}
-
-func (s *Server) Prepare(service, registerFunc interface{}) {
+func (s *Server) Prepare(registerFunc, service interface{}) {
 	f := reflect.ValueOf(registerFunc)
-	if 2 != f.Type().NumIn() {
-		log.Fatal("The number of params is not adapted.")
+	if f.Type().NumIn() != 2 {
+		grpclog.Fatal("The number of params is not adapted.")
+	}
+
+	if f.Type().In(0) != reflect.TypeOf(s.Server) {
+		grpclog.Fatal("registerFunc aren't for GRPCServer")
 	}
 
 	p := make([]reflect.Value, 2)
@@ -86,90 +85,97 @@ func (s *Server) Prepare(service, registerFunc interface{}) {
 }
 
 func (s *Server) Serve() error {
-	lis, err := net.Listen("tcp", s.GrpcBuilder.address)
+	return s.Server.Serve(s.lis)
+}
+
+func (s *Server) Stop() {
+	s.Server.Stop()
+}
+
+//// InvokeOptions struct having information about microservice API call parameters
+//type InvokeOptions struct {
+//	Stream bool
+//	// Transport Dial Timeout
+//	DialTimeout time.Duration
+//	// Request/Response timeout
+//	RequestTimeout time.Duration
+//	// end to end, Directly call
+//	Endpoint string
+//	// end to end, Directly call
+//	Protocol string
+//	Port     string
+//	//loadbalancer stratery
+//	//StrategyFunc loadbalancer.Strategy
+//	StrategyFunc string
+//	Filters      []string
+//	URLPath      string
+//	MethodType   string
+//	// local data
+//	Metadata map[string]interface{}
+//	// tags for router
+//	RouteTags utiltags.Tags
+//}
+
+func (b *GRPCBuilder) Server() *Server {
+
+	if len(b.unaryServerInterceptors) != 0 {
+		b.sopts = append(b.sopts, middleware.WithUnaryServerChain(b.unaryServerInterceptors...))
+	}
+
+	if len(b.streamServerInterceptors) != 0 {
+		b.sopts = append(b.sopts, middleware.WithStreamServerChain(b.streamServerInterceptors...))
+	}
+
+	lis, err := net.Listen("tcp", b.target)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	return s.Server.Serve(lis)
-}
-
-func (s *Server) Stop() error{return nil}
-func (c *Client) Call() {
-
-}
-
-func (c *Client) Go() {
-
-}
-func (bopts *GrpcBuilder) Server() *Server {
-	var opts []grpc.ServerOption
-
-	if bopts.serverCert != "" && bopts.serverKey != "" {
-		creds, err := credentials.NewServerTLSFromFile(bopts.serverCert, bopts.serverKey)
-		if err != nil {
-			log.Fatalf("failed to listen: %v", err)
-		}
-
-		opts = append(opts, grpc.Creds(creds))
-	}
-
-	if len(bopts.unaryServerInterceptors) != 0 {
-		opts = append(opts, middleware.WithUnaryServerChain(bopts.unaryServerInterceptors...))
-	}
-
-	if len(bopts.streamServerInterceptors) != 0 {
-		opts = append(opts, middleware.WithStreamServerChain(bopts.streamServerInterceptors...))
-	}
 
 	return &Server{
-		grpc.NewServer(opts...),
-		bopts,
+		grpc.NewServer(b.sopts...),
+		lis,
 	}
-
-	// panic("Create GRPCServer Fail")
 }
 
-// Client return a ClientConn by DialOption
+func (b *GRPCBuilder) Dial() (*grpc.ClientConn, error) {
+	return b.dialContext(context.Background())
+}
+
+// Dial return a ClientConn by DialOption
 // then you need use pb.New[ServiceName]Client(yourClientConn)
 // to Create client which could Call Service and use context
 // Should： ClientConn should be closed by Close()
-func (bopts *GrpcBuilder) Client() *Client {
-	var opts []grpc.DialOption
-
-	switch {
-	case bopts.serverHostOverride != "" && bopts.serverCert != "":
-		creds, err := credentials.NewClientTLSFromFile(bopts.serverCert, bopts.serverHostOverride)
-		if err != nil {
-			log.Fatalf("failed to load credentials: %v", err)
-		}
-		opts = append(opts, grpc.WithTransportCredentials(creds))
-		fallthrough
-	case bopts.token != "":
-		perRPC := oauth.NewOauthAccess(&oauth2.Token{AccessToken: bopts.token})
-		opts = append(opts, grpc.WithPerRPCCredentials(perRPC))
-	default:
-		opts = append(opts, grpc.WithInsecure())
+func (b *GRPCBuilder) dialContext(context context.Context) (*grpc.ClientConn, error) {
+	b.dopts = append(b.dopts, grpc.WithInsecure())
+	if len(b.unaryServerInterceptors) != 0 {
+		b.dopts = append(b.dopts, grpc.WithUnaryInterceptor(middleware.ChainUnaryClient(b.unaryClientInterceptors...)))
 	}
 
-	if bopts.compressorName != "" {
-		opts = append(opts, grpc.WithDefaultCallOptions(grpc.UseCompressor(bopts.compressorName)))
+	if len(b.streamServerInterceptors) != 0 {
+		b.dopts = append(b.dopts, grpc.WithStreamInterceptor(middleware.ChainStreamClient(b.streamClientInterceptors...)))
 	}
 
-	if len(bopts.unaryServerInterceptors) != 0 {
-		opts = append(opts, grpc.WithUnaryInterceptor(bopts.unaryClientInterceptors))
-	}
-
-	if len(bopts.streamServerInterceptors) != 0 {
-		opts = append(opts, grpc.WithStreamInterceptor(bopts.streamClientInterceptors))
-	}
-
-	client, err := grpc.Dial(bopts.address, opts...)
-	if err != nil {
-		log.Fatal("cannot connect ", bopts.address)
-	}
-
-	return &Client{
-		client,
-	}
-	// panic("Create GRPCClient Fail")
+	return grpc.DialContext(context, b.target, b.dopts...)
 }
+
+// DialTLS creates a client connection over tls transport with given serverCert and server's name.
+func (b *GRPCBuilder) DialTLS(ctx context.Context, file string, name string) (conn *grpc.ClientConn, err error) {
+	var creds credentials.TransportCredentials
+	creds, err = credentials.NewClientTLSFromFile(file, name)
+	if err != nil {
+		return
+	}
+	b.dopts = append(b.dopts, grpc.WithTransportCredentials(creds))
+	return b.dialContext(ctx)
+}
+
+// it's not good enough for use this Client interface()
+// when somebody just need simple , it will works
+type Client struct {
+	c interface{} // it's PB file's involve Client to call method
+	context.Context
+}
+
+//func (c *Client) Call(methodName string) {
+//	reflect.TypeOf(c.Client).MethodByName(methodName)
+//}

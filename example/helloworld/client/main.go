@@ -10,18 +10,20 @@ import (
 	"os"
 	"time"
 
+	"github.com/silverswords/mast/mastgrpc"
+
 	pb "github.com/silverswords/mast/example/helloworld"
-	"google.golang.org/grpc"
 )
 
 const (
-	address     = "localhost:20001"
 	defaultName = "world"
 )
 
 func main() {
 	// Set up a connection to the server.
-	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	b := mastgrpc.DefaultGRPCBuildOptions()
+
+	conn, err := b.Dial()
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}

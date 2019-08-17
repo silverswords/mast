@@ -21,7 +21,6 @@ import (
 	"context"
 	"log"
 
-	"github.com/silverswords/mast"
 	pb "github.com/silverswords/mast/example/helloworld"
 	"github.com/silverswords/mast/mastgrpc"
 )
@@ -36,13 +35,10 @@ func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloRe
 }
 
 func main() {
-	b := &mast.Builders{
-		mastgrpc.DefaultGRPCBuildOptions(),
-	}
-
+	b := mastgrpc.DefaultGRPCBuildOptions()
 	s := b.Server()
 
-	s.Prepare(&server{},pb.RegisterGreeterServer)
+	s.Prepare(pb.RegisterGreeterServer, &server{})
 
 	if err := s.Serve(); err != nil {
 		log.Fatalf("failed to serve: %v", err)

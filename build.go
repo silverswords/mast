@@ -5,8 +5,14 @@ import "github.com/silverswords/mast/mastgrpc"
 // Builder could build for given parameters to make
 // rpc and grpc client and server
 type Builder interface {
-	Client() Client
+	Dial() Client
 	Server() Server
+}
+
+// it's useful for grpc to build Client from ClientConn and PB file (or named registerFunc)
+type ConfigBuilder interface {
+	Builder
+	Config(*ConfigBuilder)
 }
 
 // Options configure Builder's options
@@ -21,14 +27,13 @@ type Server interface {
 
 // Client supposed Synchronous and Asynchronous
 type Client interface {
-	Call()
 	Close() error
 	ReloadConfigs(Options)
 	GetOptions() Options
 }
 
 type Builders struct {
-	*mastgrpc.GrpcBuilder
+	*mastgrpc.GRPCBuilder
 }
 
 // BuildClient return Client

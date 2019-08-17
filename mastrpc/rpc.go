@@ -8,6 +8,7 @@ import (
 	"net/rpc"
 	"net/rpc/jsonrpc"
 )
+
 const (
 	// DefaultRPCPath used by HandleHTTP
 	DefaultRPCPath = "/_goRPC_"

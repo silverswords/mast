@@ -2,10 +2,11 @@ package rpc
 
 import (
 	"fmt"
-	"github.com/silverswords/mast"
 	"log"
 	"net"
 	"net/http"
+
+	"github.com/silverswords/mast"
 
 	"testing"
 )
