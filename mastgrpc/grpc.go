@@ -59,8 +59,39 @@ func DefaultGRPCBuildOptions() *GRPCBuilder {
 	}
 }
 
-func SetTarget(b *GRPCBuilder, target string) {
-	b.target = target
+// DialOption configures how we set up the connection.
+type BuildOption interface {
+	apply(*GRPCBuilder)
+}
+
+// EmptyDialOption does not alter the dial configuration. It can be embedded in
+// another structure to build custom dial options.
+//
+// This API is EXPERIMENTAL.
+type EmptyDialOption struct{}
+
+func (EmptyDialOption) apply(*GRPCBuilder) {}
+
+// funcDialOption wraps a function that modifies dialOptions into an
+// implementation of the DialOption interface.
+type funcBuildOption struct {
+	f func(*GRPCBuilder)
+}
+
+func (fdo *funcBuildOption) apply(do *GRPCBuilder) {
+	fdo.f(do)
+}
+
+func newFuncDialOption(f func(*GRPCBuilder)) *funcBuildOption {
+	return &funcBuildOption{
+		f: f,
+	}
+}
+
+func WithTarget(target string) BuildOption{
+	return newFuncDialOption (func(b *GRPCBuilder){
+		b.target = target
+	})
 }
 
 type Server struct {
