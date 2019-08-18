@@ -114,11 +114,6 @@ func (s *Server) Prepare(registerFunc, service interface{}) {
 	p[0] = reflect.ValueOf(s.Server)
 	p[1] = reflect.ValueOf(service)
 	f.Call(p)
-
-	// todo: catch error to log or other things
-	defer recover() != nil {
-		if
-	}
 }
 
 func (s *Server) Serve() error {
@@ -247,5 +242,5 @@ func (c *Client) callStream(methodName string,in []reflect.Value) (interface{},e
 
 	out := m.Func.Call(in)
 
-	return out[0].Interface(),out[1].Interface().error
+	return out[0].Interface(),out[1].Interface().(error)
 }
