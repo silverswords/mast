@@ -37,7 +37,10 @@ import (
 // }
 
 type GRPCBuilder struct {
-	target string
+	// Network is grpc listen network,default value is tcp
+	Network string `dsn:"network"`
+	// Addr is grpc listen addr,default value is 0.0.0.0:9000
+	Addr string `dsn:"address"`
 
 	// temporary use bool now
 	secureConfig bool
@@ -51,12 +54,32 @@ type GRPCBuilder struct {
 	unaryClientInterceptors  []grpc.UnaryClientInterceptor
 	streamClientInterceptors []grpc.StreamClientInterceptor
 }
-
+//// ServerConfig is rpc server conf.
+//type ServerConfig struct {
+//	// Timeout is context timeout for per rpc call.
+//	Timeout xtime.Duration `dsn:"query.timeout"`
+//	// IdleTimeout is a duration for the amount of time after which an idle connection would be closed by sending a GoAway.
+//	// Idleness duration is defined since the most recent time the number of outstanding RPCs became zero or the connection establishment.
+//	IdleTimeout xtime.Duration `dsn:"query.idleTimeout"`
+//	// MaxLifeTime is a duration for the maximum amount of time a connection may exist before it will be closed by sending a GoAway.
+//	// A random jitter of +/-10% will be added to MaxConnectionAge to spread out connection storms.
+//	MaxLifeTime xtime.Duration `dsn:"query.maxLife"`
+//	// ForceCloseWait is an additive period after MaxLifeTime after which the connection will be forcibly closed.
+//	ForceCloseWait xtime.Duration `dsn:"query.closeWait"`
+//	// KeepAliveInterval is after a duration of this time if the server doesn't see any activity it pings the client to see if the transport is still alive.
+//	KeepAliveInterval xtime.Duration `dsn:"query.keepaliveInterval"`
+//	// KeepAliveTimeout  is After having pinged for keepalive check, the server waits for a duration of Timeout and if no activity is seen even after that
+//	// the connection is closed.
+//	KeepAliveTimeout xtime.Duration `dsn:"query.keepaliveTimeout"`
+//	// LogFlag to control log behaviour. e.g. LogFlag: warden.LogFlagDisableLog.
+//	// Disable: 1 DisableArgs: 2 DisableInfo: 4
+//	LogFlag int8 `dsn:"query.logFlag"`
+//}
 // DefaultGRPCBuildOptions return GRPCBuilder
 // which realized Builder interface
 func DefaultGRPCBuildOptions() *GRPCBuilder {
 	return &GRPCBuilder{
-		target: DefaultTarget,
+		Addr: DefaultTarget,
 	}
 }
 
@@ -89,9 +112,9 @@ func newFuncDialOption(f func(*GRPCBuilder)) *funcBuildOption {
 	}
 }
 
-func WithTarget(target string) BuildOption{
+func WithAddr(addr string) BuildOption{
 	return newFuncDialOption (func(b *GRPCBuilder){
-		b.target = target
+		b.Addr = addr
 	})
 }
 
@@ -158,7 +181,7 @@ func (b *GRPCBuilder) Server() *Server {
 		b.sopts = append(b.sopts, middleware.WithStreamServerChain(b.streamServerInterceptors...))
 	}
 
-	lis, err := net.Listen("tcp", b.target)
+	lis, err := net.Listen("tcp", b.Addr)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
@@ -187,7 +210,7 @@ func (b *GRPCBuilder) dialContext(context context.Context) (*grpc.ClientConn, er
 		b.dopts = append(b.dopts, grpc.WithStreamInterceptor(middleware.ChainStreamClient(b.streamClientInterceptors...)))
 	}
 
-	return grpc.DialContext(context, b.target, b.dopts...)
+	return grpc.DialContext(context, b.Addr, b.dopts...)
 }
 
 // DialTLS creates a client connection over tls transport with given serverCert and server's name.
@@ -214,11 +237,10 @@ func (c *Client) CallUnary(methodName string,in []reflect.Value)(interface{},err
 	m, ok := reflect.TypeOf(c.c).MethodByName(methodName)
 	if !ok{
 		log.Fatal("method not found")
-		return nil,errors.New("method not found")
 	}
 
 	if len(in) != 3{
-		return nil, errors.New("mistake arguement")
+		return nil, errors.New("mistake argument")
 	}
 	out:= m.Func.Call(in)
 
@@ -237,7 +259,6 @@ func (c *Client) callStream(methodName string,in []reflect.Value) (interface{},e
 	 m, ok := reflect.TypeOf(c.c).MethodByName(methodName)
 	 if !ok{
 		log.Fatal("method not found")
-		return nil ,errors.New("method not found")
 	}
 
 	out := m.Func.Call(in)
