@@ -1,16 +1,11 @@
 package mastgrpc
 
 import (
-	"context"
-	"errors"
-	"log"
-	"net"
-	"reflect"
-
-	middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/grpclog"
+)
+
+const (
+	DefaultTarget = "127.0.0.1:21001"
 )
 
 // type serverOptions struct {
@@ -36,6 +31,31 @@ import (
 // 	maxHeaderListSize     *uint32
 // }
 
+//Interceptors
+//Please send a PR to add new interceptors or middleware to this list
+//
+//Auth
+//grpc_auth - a customizable (via AuthFunc) piece of auth middleware
+//Logging
+//grpc_ctxtags - a library that adds a Tag map to context, with data populated from request body
+//grpc_zap - integration of zap logging library into gRPC handlers.
+//grpc_logrus - integration of logrus logging library into gRPC handlers.
+//Monitoring
+//grpc_prometheus⚡ - Prometheus client-side and server-side monitoring middleware
+//otgrpc⚡ - OpenTracing client-side and server-side interceptors
+//grpc_opentracing - OpenTracing client-side and server-side interceptors with support for streaming and handler-returned tags
+//Client
+//grpc_retry - a generic gRPC response code retry mechanism, client-side middleware
+//Server
+//grpc_validator - codegen inbound message validation from .proto options
+//grpc_recovery - turn panics into gRPC errors
+//ratelimit - grpc rate limiting by your own limiter
+//Status
+//This code has been running in production since May 2016 as the basis of the gRPC micro services stack at Improbable.
+//
+//Additional tooling will be added, and contributions are welcome.
+//
+
 type GRPCBuilder struct {
 	// Network is grpc listen network,default value is tcp
 	Network string `dsn:"network"`
@@ -54,6 +74,7 @@ type GRPCBuilder struct {
 	unaryClientInterceptors  []grpc.UnaryClientInterceptor
 	streamClientInterceptors []grpc.StreamClientInterceptor
 }
+
 //// ServerConfig is rpc server conf.
 //type ServerConfig struct {
 //	// Timeout is context timeout for per rpc call.
@@ -112,156 +133,8 @@ func newFuncDialOption(f func(*GRPCBuilder)) *funcBuildOption {
 	}
 }
 
-func WithAddr(addr string) BuildOption{
-	return newFuncDialOption (func(b *GRPCBuilder){
+func WithAddr(addr string) BuildOption {
+	return newFuncDialOption(func(b *GRPCBuilder) {
 		b.Addr = addr
 	})
-}
-
-type Server struct {
-	*grpc.Server
-	lis net.Listener
-}
-
-func (s *Server) Prepare(registerFunc, service interface{}) {
-	f := reflect.ValueOf(registerFunc)
-	if f.Type().NumIn() != 2 {
-		grpclog.Fatal("The number of params is not adapted.")
-	}
-
-	if f.Type().In(0) != reflect.TypeOf(s.Server) {
-		grpclog.Fatal("registerFunc aren't for GRPCServer")
-	}
-
-	p := make([]reflect.Value, 2)
-	p[0] = reflect.ValueOf(s.Server)
-	p[1] = reflect.ValueOf(service)
-	f.Call(p)
-}
-
-func (s *Server) Serve() error {
-	return s.Server.Serve(s.lis)
-}
-
-func (s *Server) Stop() {
-	s.Server.Stop()
-}
-
-//// InvokeOptions struct having information about microservice API call parameters
-//type InvokeOptions struct {
-//	Stream bool
-//	// Transport Dial Timeout
-//	DialTimeout time.Duration
-//	// Request/Response timeout
-//	RequestTimeout time.Duration
-//	// end to end, Directly call
-//	Endpoint string
-//	// end to end, Directly call
-//	Protocol string
-//	Port     string
-//	//loadbalancer stratery
-//	//StrategyFunc loadbalancer.Strategy
-//	StrategyFunc string
-//	Filters      []string
-//	URLPath      string
-//	MethodType   string
-//	// local data
-//	Metadata map[string]interface{}
-//	// tags for router
-//	RouteTags utiltags.Tags
-//}
-
-func (b *GRPCBuilder) Server() *Server {
-
-	if len(b.unaryServerInterceptors) != 0 {
-		b.sopts = append(b.sopts, middleware.WithUnaryServerChain(b.unaryServerInterceptors...))
-	}
-
-	if len(b.streamServerInterceptors) != 0 {
-		b.sopts = append(b.sopts, middleware.WithStreamServerChain(b.streamServerInterceptors...))
-	}
-
-	lis, err := net.Listen("tcp", b.Addr)
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
-
-	return &Server{
-		grpc.NewServer(b.sopts...),
-		lis,
-	}
-}
-
-func (b *GRPCBuilder) Dial() (*grpc.ClientConn, error) {
-	return b.dialContext(context.Background())
-}
-
-// Dial return a ClientConn by DialOption
-// then you need use pb.New[ServiceName]Client(yourClientConn)
-// to Create client which could Call Service and use context
-// Should： ClientConn should be closed by Close()
-func (b *GRPCBuilder) dialContext(context context.Context) (*grpc.ClientConn, error) {
-	b.dopts = append(b.dopts, grpc.WithInsecure())
-	if len(b.unaryServerInterceptors) != 0 {
-		b.dopts = append(b.dopts, grpc.WithUnaryInterceptor(middleware.ChainUnaryClient(b.unaryClientInterceptors...)))
-	}
-
-	if len(b.streamServerInterceptors) != 0 {
-		b.dopts = append(b.dopts, grpc.WithStreamInterceptor(middleware.ChainStreamClient(b.streamClientInterceptors...)))
-	}
-
-	return grpc.DialContext(context, b.Addr, b.dopts...)
-}
-
-// DialTLS creates a client connection over tls transport with given serverCert and server's name.
-func (b *GRPCBuilder) DialTLS(ctx context.Context, file string, name string) (conn *grpc.ClientConn, err error) {
-	var creds credentials.TransportCredentials
-	creds, err = credentials.NewClientTLSFromFile(file, name)
-	if err != nil {
-		return
-	}
-	b.dopts = append(b.dopts, grpc.WithTransportCredentials(creds))
-	return b.dialContext(ctx)
-}
-
-// Client to call Service
-type Client struct {
-	c interface{} // it's PB file's involve Client to call method
-	context.Context
-}
-
-// CallUnary
-// [3]reflect.Value in[0] is context.Context, in[1] is your message type which generated by pb file.
-// in[2] is grpc.CallOption
-func (c *Client) CallUnary(methodName string,in []reflect.Value)(interface{},error) {
-	m, ok := reflect.TypeOf(c.c).MethodByName(methodName)
-	if !ok{
-		log.Fatal("method not found")
-	}
-
-	if len(in) != 3{
-		return nil, errors.New("mistake argument")
-	}
-	out:= m.Func.Call(in)
-
-	if len(out) != 2{
-		return nil, errors.New("mistake method")
-	}
-
-	return out[0].Interface(),out[1].Interface().(error)
-}
-
-
-// callStream
-// [3]reflect.Value in[0] is context.Context, in[1] is your message type which generated by pb file.
-// in[2] is grpc.CallOption
-func (c *Client) callStream(methodName string,in []reflect.Value) (interface{},error){
-	 m, ok := reflect.TypeOf(c.c).MethodByName(methodName)
-	 if !ok{
-		log.Fatal("method not found")
-	}
-
-	out := m.Func.Call(in)
-
-	return out[0].Interface(),out[1].Interface().(error)
 }
