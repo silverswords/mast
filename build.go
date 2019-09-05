@@ -7,7 +7,7 @@ type Builder interface {
 	Server() Server
 }
 
-// it's useful for grpc to build Client from ClientConn and PB file (or named registerFunc)
+// ConfigBuilder it's useful for grpc to build Client from ClientConn and PB file (or named registerFunc)
 type ConfigBuilder interface {
 	Builder
 	Config(*ConfigBuilder)
