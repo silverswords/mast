@@ -23,6 +23,10 @@ func main() {
 	// Set up a connection to the server.
 	b := mastgrpc.DefaultGRPCBuildOptions()
 
+	Client := b.Client(pb.NewGreeterClient)
+	Client.(pb.GreeterClient).SayHello(
+
+		)
 	conn, err := b.Dial()
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)

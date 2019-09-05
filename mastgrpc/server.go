@@ -16,6 +16,28 @@ type Server struct {
 	lis net.Listener
 }
 
+
+func (b *GRPCBuilder) Server() *Server {
+
+	if len(b.unaryServerInterceptors) != 0 {
+		b.sopts = append(b.sopts, middleware.WithUnaryServerChain(b.unaryServerInterceptors...))
+	}
+
+	if len(b.streamServerInterceptors) != 0 {
+		b.sopts = append(b.sopts, middleware.WithStreamServerChain(b.streamServerInterceptors...))
+	}
+
+	lis, err := net.Listen("tcp", b.Addr)
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+
+	return &Server{
+		grpc.NewServer(b.sopts...),
+		lis,
+	}
+}
+
 func (s *Server) Prepare(registerFunc, service interface{}) {
 	f := reflect.ValueOf(registerFunc)
 	if f.Type().NumIn() != 2 {
@@ -26,10 +48,10 @@ func (s *Server) Prepare(registerFunc, service interface{}) {
 		grpclog.Fatal("registerFunc aren't for GRPCServer")
 	}
 
-	p := make([]reflect.Value, 2)
-	p[0] = reflect.ValueOf(s.Server)
-	p[1] = reflect.ValueOf(service)
-	f.Call(p)
+	in := make([]reflect.Value, 2)
+	in[0] = reflect.ValueOf(s.Server)
+	in[1] = reflect.ValueOf(service)
+	f.Call(in)
 }
 
 func (s *Server) Serve() error {
@@ -63,24 +85,3 @@ func (s *Server) Stop() {
 //	// tags for router
 //	RouteTags utiltags.Tags
 //}
-
-func (b *GRPCBuilder) Server() *Server {
-
-	if len(b.unaryServerInterceptors) != 0 {
-		b.sopts = append(b.sopts, middleware.WithUnaryServerChain(b.unaryServerInterceptors...))
-	}
-
-	if len(b.streamServerInterceptors) != 0 {
-		b.sopts = append(b.sopts, middleware.WithStreamServerChain(b.streamServerInterceptors...))
-	}
-
-	lis, err := net.Listen("tcp", b.Addr)
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
-
-	return &Server{
-		grpc.NewServer(b.sopts...),
-		lis,
-	}
-}

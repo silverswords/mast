@@ -8,29 +8,6 @@ const (
 	DefaultTarget = "127.0.0.1:21001"
 )
 
-// type serverOptions struct {
-// 	creds                 credentials.TransportCredentials
-// 	codec                 baseCodec
-// 	cp                    Compressor
-// 	dc                    Decompressor
-// 	unaryInt              UnaryServerInterceptor
-// 	streamInt             StreamServerInterceptor
-// 	inTapHandle           tap.ServerInHandle
-// 	statsHandler          stats.Handler
-// 	maxConcurrentStreams  uint32
-// 	maxReceiveMessageSize int
-// 	maxSendMessageSize    int
-// 	unknownStreamDesc     *StreamDesc
-// 	keepaliveParams       keepalive.ServerParameters
-// 	keepalivePolicy       keepalive.EnforcementPolicy
-// 	initialWindowSize     int32
-// 	initialConnWindowSize int32
-// 	writeBufferSize       int
-// 	readBufferSize        int
-// 	connectionTimeout     time.Duration
-// 	maxHeaderListSize     *uint32
-// }
-
 //Interceptors
 //Please send a PR to add new interceptors or middleware to this list
 //
@@ -75,27 +52,6 @@ type GRPCBuilder struct {
 	streamClientInterceptors []grpc.StreamClientInterceptor
 }
 
-//// ServerConfig is rpc server conf.
-//type ServerConfig struct {
-//	// Timeout is context timeout for per rpc call.
-//	Timeout xtime.Duration `dsn:"query.timeout"`
-//	// IdleTimeout is a duration for the amount of time after which an idle connection would be closed by sending a GoAway.
-//	// Idleness duration is defined since the most recent time the number of outstanding RPCs became zero or the connection establishment.
-//	IdleTimeout xtime.Duration `dsn:"query.idleTimeout"`
-//	// MaxLifeTime is a duration for the maximum amount of time a connection may exist before it will be closed by sending a GoAway.
-//	// A random jitter of +/-10% will be added to MaxConnectionAge to spread out connection storms.
-//	MaxLifeTime xtime.Duration `dsn:"query.maxLife"`
-//	// ForceCloseWait is an additive period after MaxLifeTime after which the connection will be forcibly closed.
-//	ForceCloseWait xtime.Duration `dsn:"query.closeWait"`
-//	// KeepAliveInterval is after a duration of this time if the server doesn't see any activity it pings the client to see if the transport is still alive.
-//	KeepAliveInterval xtime.Duration `dsn:"query.keepaliveInterval"`
-//	// KeepAliveTimeout  is After having pinged for keepalive check, the server waits for a duration of Timeout and if no activity is seen even after that
-//	// the connection is closed.
-//	KeepAliveTimeout xtime.Duration `dsn:"query.keepaliveTimeout"`
-//	// LogFlag to control log behaviour. e.g. LogFlag: warden.LogFlagDisableLog.
-//	// Disable: 1 DisableArgs: 2 DisableInfo: 4
-//	LogFlag int8 `dsn:"query.logFlag"`
-//}
 // DefaultGRPCBuildOptions return GRPCBuilder
 // which realized Builder interface
 func DefaultGRPCBuildOptions() *GRPCBuilder {
