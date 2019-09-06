@@ -2,76 +2,119 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/silverswords/mast)](https://goreportcard.com/report/github.com/silverswords/mast)
 
-mast is a builder for rpc client and server.By use same options to reduce lines of code.
+mast is a builder for rpc client and server By use options to reduce complexity and power new people use gprc.
 
 ## Usage
 
-## RPC
 ### Server
 ```go
-package main
+// Copyright (C) 2019 Abser Ari
 
 import (
-    "errors"
-    "github.com/silverswords/mast"
+	"context"
+	"log"
+
+	"github.com/silverswords/mast/mastgrpc"
+	pb "github.com/silverswords/mast/unittest/helloworld"
 )
 
-type Args struct { 
-	A, B int
+// server is used to implement helloworld.GreeterServer.
+type server struct{}
+
+// SayHello implements helloworld.GreeterServer
+func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
+	log.Printf("Received: %v", in.Name)
+	return &pb.HelloReply{Message: "Hello " + in.Name}, nil
 }
-
-type Quotient struct {
-	Quo, Rem int
-}
-
-type Arith int
-
-func (t *Arith) Multiply(args *Args, reply *int) error {
-	*reply = args.A * args.B
-	return nil
-}
-
-func (t *Arith) Divide(args *Args, quo *Quotient) error {
-	if args.B == 0 {
-		return errors.New("divide by zero")
-	}
-	quo.Quo = args.A / args.B
-	quo.Rem = args.A % args.B
-	return nil
-}
-
 
 func main() {
-	m := &mast.Mast{BuilderOptions: defaultRPCBuildOptions()}
-	m.BuilderOptions.rcvrs["Arith"] = new(Arith)
-	m.BuildServer("RPC")
+	b := mastgrpc.DefaultGRPCBuildOptions()
+	
+	s := b.Server()
+
+	s.Prepare(pb.RegisterGreeterServer, &server{})
+
+	if err := s.Serve(); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
+
 }
 ```
 
 ### Client.go
 ```go
-package main
-
 import (
-    "log"
-    "github.com/silverswords/mast"
+	"context"
+	"log"
+	"os"
+	"time"
+
+	"github.com/silverswords/mast/mastgrpc"
+
+	pb "github.com/silverswords/mast/unittest/helloworld"
 )
 
-type Args struct { 
-	A, B int
-}
+const (
+	defaultName = "world"
+)
 
-type Quotient struct {
-	Quo, Rem int
-}
+func main() {
+	// Set up a connection to the server.
+	b := mastgrpc.DefaultGRPCBuildOptions()
 
-func main(){
-	m := &mast.Mast{BuilderOptions: defaultRPCBuildOptions()}
-	args := &Args{7, 8}
-	var reply int
-    err := mast.BuildClient("RPC").(*rpc.Client).Call("Arith.Multiply", args, &reply)
+	conn, err := b.ClientConn()
 	if err != nil {
-		log.Fatal(err)
-    }
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+	c := pb.NewGreeterClient(conn)
+
+	// Contact the server and print out its response.
+	name := defaultName
+	if len(os.Args) > 1 {
+		name = os.Args[1]
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	r, err := c.SayHello(ctx, &pb.HelloRequest{Name: name})
+	if err != nil {
+		log.Fatalf("could not greet: %v", err)
+	}
+
+	log.Printf("Greeting: %s", r.Message)
 }
 ```
+
+第一是  决定 grpc mast 的基底
+第二是 需要添加哪些特性开始扩展 Mast 
+第三 构建和 istio  promethues 的集成
+添加特性
+思考一下下
+- [ ] 超时dial 控制
+
+- [ ] 压缩选项
+
+- [ ] 认证选项
+
+- [ ] TLS 加密
+
+- [ ] 自动重试
+
+- [ ] panic 恢复
+
+- [ ] ratelimit 限制
+
+- [ ] 统计
+
+- [ ] 日志重定向
+
+- [ ] 转发 transport
+
+- [ ] 追踪 Trace
+
+- [ ] 心跳
+
+- [ ] 负载均衡
+
