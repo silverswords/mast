@@ -36,7 +36,7 @@ func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloRe
 
 func main() {
 	b := mastgrpc.DefaultGRPCBuildOptions()
-	
+
 	s := b.Server()
 
 	s.Prepare(pb.RegisterGreeterServer, &server{})

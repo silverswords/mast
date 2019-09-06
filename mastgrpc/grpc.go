@@ -5,6 +5,7 @@ import (
 )
 
 const (
+	// DefaultTarget temporary
 	DefaultTarget = "127.0.0.1:21001"
 )
 
@@ -33,6 +34,7 @@ const (
 //Additional tooling will be added, and contributions are welcome.
 //
 
+// GRPCBuilder - instance of mast
 type GRPCBuilder struct {
 	// Network is grpc listen network,default value is tcp
 	Network string `dsn:"network"`
@@ -60,7 +62,7 @@ func DefaultGRPCBuildOptions() *GRPCBuilder {
 	}
 }
 
-// DialOption configures how we set up the connection.
+// BuildOption configures how we set up the connection.
 type BuildOption interface {
 	apply(*GRPCBuilder)
 }
@@ -89,6 +91,7 @@ func newFuncDialOption(f func(*GRPCBuilder)) *funcBuildOption {
 	}
 }
 
+// WithAddr -
 func WithAddr(addr string) BuildOption {
 	return newFuncDialOption(func(b *GRPCBuilder) {
 		b.Addr = addr

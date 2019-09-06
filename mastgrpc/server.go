@@ -11,12 +11,13 @@ import (
 	"google.golang.org/grpc/grpclog"
 )
 
+// Server -
 type Server struct {
 	*grpc.Server
 	lis net.Listener
 }
 
-
+// Server -
 func (b *GRPCBuilder) Server() *Server {
 
 	if len(b.unaryServerInterceptors) != 0 {
@@ -38,6 +39,7 @@ func (b *GRPCBuilder) Server() *Server {
 	}
 }
 
+// Prepare -
 func (s *Server) Prepare(registerFunc, service interface{}) {
 	f := reflect.ValueOf(registerFunc)
 	if f.Type().NumIn() != 2 {
@@ -54,10 +56,12 @@ func (s *Server) Prepare(registerFunc, service interface{}) {
 	f.Call(in)
 }
 
+// Serve -
 func (s *Server) Serve() error {
 	return s.Server.Serve(s.lis)
 }
 
+// Stop -
 func (s *Server) Stop() {
 	s.Server.Stop()
 }

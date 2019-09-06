@@ -2,11 +2,13 @@ package mastgrpc
 
 import (
 	"context"
+
 	middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
 
+// ClientConn get grpc.ClientConn
 func (b *GRPCBuilder) ClientConn() (*grpc.ClientConn, error) {
 	return b.Dial()
 }
