@@ -41,8 +41,6 @@ type GRPCBuilder struct {
 	// Addr is grpc listen addr,default value is 0.0.0.0:9000
 	Addr string `dsn:"address"`
 
-	// temporary use bool now
-	secureConfig bool
 
 	sopts []grpc.ServerOption
 	dopts []grpc.DialOption

@@ -8,8 +8,6 @@ mast is a builder for rpc client and server By use options to reduce complexity 
 
 ### Server
 ```go
-// Copyright (C) 2019 Abser Ari
-
 import (
 	"context"
 	"log"
@@ -108,13 +106,15 @@ func main() {
 
 - [ ] 统计
 
-- [ ] 日志重定向
+- [ ] 系统监控和日志
 
 - [ ] 转发 transport
 
 - [ ] 追踪 Trace
 
-- [ ] 心跳
+- [ ] 心跳健康检查
 
 - [ ] 负载均衡
+
+- [ ] CI/CD
 
