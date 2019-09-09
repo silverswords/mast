@@ -102,7 +102,7 @@ func main() {
 
 - [ ] panic 恢复
 
-- [ ] ratelimit 限制
+- [ ] 流量控制：ratelimit 限制
 
 - [ ] 统计
 
@@ -117,4 +117,9 @@ func main() {
 - [ ] 负载均衡
 
 - [ ] CI/CD
+
+- [ ] 遥测
+
+- [ ] 路由支持 http 或 GRPCGateWay
+
 
