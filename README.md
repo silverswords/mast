@@ -4,6 +4,8 @@
 
 mast is a builder for rpc client and server By use options to reduce complexity and power new people use gprc.
 
+Service Mesh 模式的核心，其基本原理在于将客户端 SDK 剥离，以 Proxy 独立进程运行；目标是将原来存在于 SDK 中的各种能力下沉，为应用减负，以帮助应用云原生化。
+
 ## Usage
 
 ### Server
@@ -121,5 +123,9 @@ func main() {
 - [ ] 遥测
 
 - [ ] 路由支持 http 或 GRPCGateWay
+
+- [ ] 消息
+
+- [ ] 缓存
 
 
