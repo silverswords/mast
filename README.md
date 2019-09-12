@@ -90,9 +90,14 @@ func main() {
 第一是  决定 grpc mast 的基底
 第二是 需要添加哪些特性开始扩展 Mast 
 第三 构建和 istio  promethues 的集成
+
+- [x] Client 方 Dial 
+
+- [x] Server 方 注册服务启动
+
 添加特性
 思考一下下
-- [ ] 超时dial 控制
+- [ ] 超时dial 控制 - Client 端的 Dial 设置
 
 - [ ] 压缩选项
 
@@ -118,6 +123,7 @@ func main() {
 
 - [ ] 负载均衡
 
+- [ ] consul 等服务注册中心
 - [ ] CI/CD
 
 - [ ] 遥测
