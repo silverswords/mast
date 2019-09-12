@@ -12,7 +12,7 @@ import (
 
 	"github.com/silverswords/mast/mastgrpc"
 
-	pb "github.com/silverswords/mast/unittest/helloworld"
+	pb "github.com/silverswords/mast/example/helloworld"
 )
 
 const (

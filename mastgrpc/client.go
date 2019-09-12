@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
+
 // ClientConn get grpc.ClientConn
 func (b *GRPCBuilder) ClientConn() (*grpc.ClientConn, error) {
 	return b.Dial()

@@ -15,7 +15,7 @@ import (
 	"log"
 
 	"github.com/silverswords/mast/mastgrpc"
-	pb "github.com/silverswords/mast/unittest/helloworld"
+	pb example
 )
 
 // server is used to implement helloworld.GreeterServer.
