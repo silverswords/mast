@@ -1,5 +1,6 @@
 package mast
 
+
 // Builder could build for given parameters to make
 // rpc and grpc client and server
 type Builder interface {

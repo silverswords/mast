@@ -90,22 +90,15 @@ func main() {
 }
 ```
 
-1. 决定 grpc mast 的基底
-2. 需要添加哪些特性开始扩展 Mast 
-3. 构建和 istio  promethues 的集成
-
 - [x] Client-side Dial 
 
 - [x] Server-side register service and start
 
 ### features
-- [x] timeout-dial  - Client-side 
-
-- [x] Compress
-
 - [ ] autoauth - interceptor
     - [ ] jwt
     - [ ] DIY
+    - [ ] grpc_auth
 
 - [ ] TLS - Client & Server
     - [x] DialTLS
@@ -113,26 +106,38 @@ func main() {
     - [ ] ServerCert  -> tlsCreds :only provide this way
     - [ ] Cert expired & auto-acme
 
-- [ ] metrics
-
+- [ ] metrics 
+    - [ ] grpc_prometheus
+    - [ ] otgrpc
+    
+- [ ] Trace
+    - [ ] grpc_opentracing
+    
 - [ ] logging
+    - [ ] grpc_logrus
+    - [ ] grpc_zap
+    - [ ] grpc_ctxtags
 
+- Client-side
 - [ ] grpc_retry - Client-side
     - [ ] retry by errcode
+    
+- [x] timeout-dial  - Client-side 
 
-- [ ] panic-recovery
+- [x] Compress
+
+- [ ] loadbalance
+
+- Server-side
+- [ ] panic-recovery : grpc_recovery
+
+- [ ] grpc_validator
 
 - [ ] ratelimit 
 
-- [ ] meatedata
-
 - [ ] transport
 
-- [ ] Trace
-
 - [ ] healthy
-
-- [ ] loadbalance
 
 - [ ] registery 
     - [ ]consul 
@@ -147,4 +152,8 @@ func main() {
 
 - [ ] Cache
 
+### Stage
 
+1. Complete Features
+2. Could Build from Config file
+3. Web Control and Automatic
