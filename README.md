@@ -2,6 +2,8 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/silverswords/mast)](https://goreportcard.com/report/github.com/silverswords/mast)
 
+[English](https://github.com/silverswords/mast/Readme) [Chinese](https://github.com/silverswords/mast/zh-cn)
+
 mast is a builder for rpc client and server By use options to reduce complexity and power new people use gprc.
 
 Service Mesh 模式的核心，其基本原理在于将客户端 SDK 剥离，以 Proxy 独立进程运行；目标是将原来存在于 SDK 中的各种能力下沉，为应用减负，以帮助应用云原生化。
@@ -87,51 +89,57 @@ func main() {
 }
 ```
 
-第一是  决定 grpc mast 的基底
-第二是 需要添加哪些特性开始扩展 Mast 
-第三 构建和 istio  promethues 的集成
+1. 决定 grpc mast 的基底
+2. 需要添加哪些特性开始扩展 Mast 
+3. 构建和 istio  promethues 的集成
 
-- [x] Client 方 Dial 
+- [x] Client-side Dial 
 
-- [x] Server 方 注册服务启动
+- [x] Server-side register service and start
 
-添加特性
-思考一下下
-- [x] 超时dial 控制 - Client 端的 Dial 设置
+### features
+- [x] timeout-dial  - Client-side 
 
-- [ ] 压缩选项
+- [ ] Compress
 
-- [ ] 认证选项
+- [ ] autoauth - interceptor
+    - [ ] jwt
+    - [ ] DIY
 
-- [ ] TLS 加密
+- [ ] TLS - Client & Server
+    - [x] DialTLS
+    - [ ] ServerCert
+    - [ ] Cert expired & auto-acme
 
-- [ ] 自动重试
+- [ ] grpc_retry - Client-side
 
-- [ ] panic 恢复
+- [ ] panic-recovery
 
-- [ ] 流量控制：ratelimit 限制
+- [ ] ratelimit 
 
-- [ ] 统计
+- [ ] metrics
 
-- [ ] 系统监控和日志
+- [ ] logging
 
-- [ ] 转发 transport
+- [ ] transport
 
-- [ ] 追踪 Trace
+- [ ] Trace
 
-- [ ] 心跳健康检查
+- [ ] healthy
 
-- [ ] 负载均衡
+- [ ] loadbalance
 
-- [ ] consul 等服务注册中心
+- [ ] registery 
+    - [ ]consul 
+
 - [ ] CI/CD
 
-- [ ] 遥测
+- [ ] telemetry
 
-- [ ] 路由支持 http 或 GRPCGateWay
+- [ ] route or  GRPCGateWay
 
-- [ ] 消息
+- [ ] MQ
 
-- [ ] 缓存
+- [ ] Cache
 
 
