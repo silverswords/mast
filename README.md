@@ -97,7 +97,7 @@ func main() {
 
 添加特性
 思考一下下
-- [ ] 超时dial 控制 - Client 端的 Dial 设置
+- [x] 超时dial 控制 - Client 端的 Dial 设置
 
 - [ ] 压缩选项
 

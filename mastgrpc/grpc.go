@@ -2,6 +2,7 @@ package mastgrpc
 
 import (
 	"google.golang.org/grpc"
+	"time"
 )
 
 const (
@@ -40,6 +41,8 @@ type GRPCBuilder struct {
 	Network string `dsn:"network"`
 	// Addr is grpc listen addr,default value is 0.0.0.0:9000
 	Addr string `dsn:"address"`
+
+	ClientDialDeadline  time.Duration `dsn:"client-side"`
 
 
 	sopts []grpc.ServerOption
