@@ -37,6 +37,10 @@ func (b *GRPCBuilder) dialContext(context context.Context) (*grpc.ClientConn, er
 		b.dopts = append(b.dopts, grpc.WithStreamInterceptor(middleware.ChainStreamClient(b.streamClientInterceptors...)))
 	}
 
+	if b.ClientCompresser != "" {
+	b.dopts = append(b.dopts, grpc.WithDefaultCallOptions(grpc.UseCompressor(b.ClientCompresser)))
+	}
+
 	return grpc.DialContext(context, b.Addr, b.dopts...)
 }
 

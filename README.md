@@ -8,6 +8,7 @@ mast is a builder for rpc client and server By use options to reduce complexity 
 
 Service Mesh 模式的核心，其基本原理在于将客户端 SDK 剥离，以 Proxy 独立进程运行；目标是将原来存在于 SDK 中的各种能力下沉，为应用减负，以帮助应用云原生化。
 
+mast 用于初学入门迅速获得 grpc 生产环境的解决方案和迅速学习落地 grpc 的使用
 ## Usage
 
 ### Server
@@ -100,7 +101,7 @@ func main() {
 ### features
 - [x] timeout-dial  - Client-side 
 
-- [ ] Compress
+- [x] Compress
 
 - [ ] autoauth - interceptor
     - [ ] jwt

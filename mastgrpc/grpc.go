@@ -43,7 +43,7 @@ type GRPCBuilder struct {
 	Addr string `dsn:"address"`
 
 	ClientDialDeadline  time.Duration `dsn:"client-side"`
-
+	ClientCompresser string
 
 	sopts []grpc.ServerOption
 	dopts []grpc.DialOption
