@@ -108,18 +108,22 @@ func main() {
 
 - [ ] TLS - Client & Server
     - [x] DialTLS
-    - [ ] ServerCert
+    - [ ] use grpc.WithTransportCredentials(tlsCreds)
+    - [ ] ServerCert  -> tlsCreds :only provide this way
     - [ ] Cert expired & auto-acme
 
+- [ ] metrics
+
+- [ ] logging
+
 - [ ] grpc_retry - Client-side
+    - [ ] retry by errcode
 
 - [ ] panic-recovery
 
 - [ ] ratelimit 
 
-- [ ] metrics
-
-- [ ] logging
+- [ ] meatedata
 
 - [ ] transport
 

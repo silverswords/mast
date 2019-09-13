@@ -19,6 +19,9 @@ func (b *GRPCBuilder) ClientConn() (*grpc.ClientConn, error) {
 // to Create client which could Call Service and use context
 // Should： ClientConn should be closed by Close()
 func (b *GRPCBuilder) Dial() (*grpc.ClientConn, error) {
+	if int64(b.ClientDialDeadline) < 1 {
+		return b.dialContext(context.Background())
+	}
 	ctx, cancelFunc := context.WithTimeout(context.Background(),b.ClientDialDeadline)
 	defer cancelFunc()
 	return b.dialContext(ctx)
