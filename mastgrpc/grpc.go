@@ -7,7 +7,16 @@ import (
 )
 
 
+// defaultTarget temporary
+var defaultBuilder = &GRPCBuilder{
+	Network: "tcp",
+	Addr:"127.0.0.1:21001",
 
+	ClientDialDeadline: time.Second,
+	ClientCompresser: "gzip",
+
+
+}
 
 // GRPCBuilder - instance of mast
 type GRPCBuilder struct {
