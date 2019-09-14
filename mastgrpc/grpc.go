@@ -1,14 +1,13 @@
 package mastgrpc
 
 import (
-	"google.golang.org/grpc"
 	"time"
+
+	"google.golang.org/grpc"
 )
 
-const (
-	// DefaultTarget temporary
-	DefaultTarget = "127.0.0.1:21001"
-)
+
+
 
 // GRPCBuilder - instance of mast
 type GRPCBuilder struct {
@@ -17,8 +16,8 @@ type GRPCBuilder struct {
 	// Addr is grpc listen addr,default value is 0.0.0.0:9000
 	Addr string `dsn:"address"`
 
-	ClientDialDeadline  time.Duration `dsn:"client-side"`
-	ClientCompresser string
+	ClientDialDeadline time.Duration `dsn:"client-side"`
+	ClientCompresser   string
 
 	sopts []grpc.ServerOption
 	dopts []grpc.DialOption

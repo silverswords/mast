@@ -8,7 +8,6 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-
 // ClientConn get grpc.ClientConn
 func (b *GRPCBuilder) ClientConn() (*grpc.ClientConn, error) {
 	return b.Dial()
@@ -22,7 +21,7 @@ func (b *GRPCBuilder) Dial() (*grpc.ClientConn, error) {
 	if int64(b.ClientDialDeadline) < 1 {
 		return b.dialContext(context.Background())
 	}
-	ctx, cancelFunc := context.WithTimeout(context.Background(),b.ClientDialDeadline)
+	ctx, cancelFunc := context.WithTimeout(context.Background(), b.ClientDialDeadline)
 	defer cancelFunc()
 	return b.dialContext(ctx)
 }
@@ -38,7 +37,7 @@ func (b *GRPCBuilder) dialContext(context context.Context) (*grpc.ClientConn, er
 	}
 
 	if b.ClientCompresser != "" {
-	b.dopts = append(b.dopts, grpc.WithDefaultCallOptions(grpc.UseCompressor(b.ClientCompresser)))
+		b.dopts = append(b.dopts, grpc.WithDefaultCallOptions(grpc.UseCompressor(b.ClientCompresser)))
 	}
 
 	return grpc.DialContext(context, b.Addr, b.dopts...)
