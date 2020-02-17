@@ -142,15 +142,9 @@ func main() {
 - [ ] registery 
     - [ ]consul 
 
-- [ ] CI/CD
-
 - [ ] telemetry
 
 - [ ] route or  GRPCGateWay
-
-- [ ] MQ
-
-- [ ] Cache
 
 ### Stage
 
