@@ -6,9 +6,9 @@
 
 mast is a builder for rpc client and server By use options to reduce complexity and power new people use gprc.
 
-Service Mesh 模式的核心，其基本原理在于将客户端 SDK 剥离，以 Proxy 独立进程运行；目标是将原来存在于 SDK 中的各种能力下沉，为应用减负，以帮助应用云原生化。
+The core of the Service Mesh model is based on the basic principle of separating the client SDK and running it as a Proxy independent process; the goal is to sink the various capabilities that originally existed in the SDK to reduce the burden on the application to help the application cloud native.
 
-mast 用于初学入门迅速获得 grpc 生产环境的解决方案和迅速学习落地 grpc 的使用
+mast is used for beginners to quickly obtain solutions for the grpc production environment and quickly learn to land the use of grpc
 ## Usage
 
 ### Server
